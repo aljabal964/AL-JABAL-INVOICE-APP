@@ -237,7 +237,7 @@ tbody tr:nth-child(even) {
 
 <script>
 const API_URL =
-"https://script.google.com/macros/s/AKfycbxDV_niQB5MXxSUA_6XNGTDFXEKA6prUmuiaQVC0Mli/exec";
+"https://script.google.com/macros/s/AKfycbxBbFaoSd2RjSDFZOUFvbCHbJ8uWgfdFQ0hgUPXtAcXSM8fttTjvf94yuMA5E-3R8vYAg/exec";
 
 document.getElementById("dateTime").innerText =
   new Date().toLocaleString();
@@ -280,6 +280,7 @@ function deleteRow(btn) {
   calc();
 }
 
+<script>
 async function saveInvoice() {
   const customer =
     document.getElementById("customerName").value;
@@ -290,15 +291,28 @@ async function saveInvoice() {
   const total =
     document.getElementById("grandTotal").innerText;
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      customer,
-      phone,
-      subtotal,
-      total
-    })
+  const params = new URLSearchParams({
+    customer,
+    phone,
+    subtotal,
+    total
   });
+
+  const response = await fetch(
+    `${API_URL}?${params.toString()}`
+  );
+
+  const result = await response.json();
+
+  document.getElementById("invoiceNo").value =
+    result.invoiceNo;
+
+  document.title =
+    `AL JABAL TYPING - ${result.invoiceNo}`;
+
+  window.print();
+}
+</script>
 
   const result = await response.json();
 
@@ -314,6 +328,7 @@ async function saveInvoice() {
 
 </body>
 </html>
+
 
 
 
