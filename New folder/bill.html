@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice</title>
+
+<style>
+@page {
+  size: A4;
+  margin: 18mm;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #eef1f5;
+}
+
+.invoice {
+  background: #fff;
+  width: 210mm;
+  min-height: 297mm;
+  margin: auto;
+  padding: 18mm;
+  box-sizing: border-box;
+  color: #333;
+}
+
+/* HEADER */
+
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-image {
+  width: 700px;   /* recommended */
+  height: 150px;  /* recommended */
+  object-fit: contain;
+}
+
+
+.shop-info {
+  text-align: right;
+  font-size: 14px;
+}
+
+.top-line {
+  height: 4px;
+  background: #1F3A5F;
+  margin: 14px 0;
+}
+
+.invoice-title {
+  text-align: center;
+  font-size: 30px;
+  font-weight: bold;
+  color: #1F3A5F;
+  margin-bottom: 20px;
+}
+
+/* INFO */
+.info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.info h4 {
+  margin-bottom: 6px;
+  color: #1F3A5F;
+}
+
+.info input {
+  border: none;
+  border-bottom: 1px solid #999;
+  width: 100%;
+  margin-bottom: 6px;
+  outline: none;
+  font-size: 14px;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #1F3A5F;
+  color: #fff;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+td input {
+  width: 100%;
+  border: none;
+  outline: none;
+}
+
+tbody tr:nth-child(even) {
+  background: #f4f6f9;
+}
+
+/* ACTION COLUMN */
+.action-col button {
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+/* TOTAL */
+.total-box {
+  width: 320px;
+  margin-left: auto;
+  margin-top: 25px;
+}
+
+.total-box div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.grand-total {
+  background: #1F3A5F;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 40px;
+}
+
+.footer-line {
+  height: 2px;
+  background: #1F3A5F;
+  margin-top: 30px;
+}
+
+/* PRINT RULES */
+@media print {
+  body { background: none; }
+  .actions { display: none; }
+  .action-col { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="invoice">
+
+  <!-- HEADER -->
+  <!-- HEADER IMAGE -->
+<div class="header">
+  <img src="header.png" class="header-image">
+</div>
+
+
+  <div class="top-line"></div>
+  <div class="invoice-title">INVOICE</div>
+
+  <!-- INFO -->
+  <div class="info">
+    <div>
+      <h4>Invoice To</h4>
+      <input id="customerName" placeholder="Customer Name">
+      <input id="customerPhone" placeholder="Phone Number">
+    </div>
+
+    <div>
+      <h4>Invoice Details</h4>
+      Invoice No:
+      <input id="invoiceNo" style="width:120px" readonly><br>
+      Date:
+      <b id="dateTime"></b>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>SL</th>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Price (AED)</th>
+        <th>Total (AED)</th>
+        <th class="action-col">Action</th>
+      </tr>
+    </thead>
+    <tbody id="items">
+      <tr>
+        <td>1</td>
+        <td><input></td>
+        <td><input type="number" value="1" onchange="calc()"></td>
+        <td><input type="number" onchange="calc()"></td>
+        <td class="rowTotal">0</td>
+        <td class="action-col">
+          <button onclick="addRow()">+</button>
+          <button onclick="deleteRow(this)">✕</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TOTAL -->
+  <div class="total-box">
+    <div>
+      <span>Subtotal</span>
+      <span>AED <span id="subTotal">0</span></span>
+    </div>
+    <div class="grand-total">
+      <span>Total</span>
+      <span>AED <span id="grandTotal">0</span></span>
+    </div>
+  </div>
+
+  <div class="footer">
+    Thank you for your business.
+    <div class="footer-line"></div>
+  </div>
+
+</div>
+
+<div class="actions" style="text-align:center;margin:20px">
+  <button onclick="saveInvoice()">Save & Print PDF</button>
+</div>
+
+<script>
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzXPEstRs8ROMhcwoqjmE6eddSZBvsvqerT2sSiDZAx10GsgR889HtF8FovBfFqkOUzwg/exec";
+
+document.getElementById("dateTime").innerText =
+  new Date().toLocaleString();
+
+function calc() {
+  let rows = document.querySelectorAll("#items tr");
+  let total = 0;
+
+  rows.forEach((row, i) => {
+    row.children[0].innerText = i + 1;
+    let qty = row.children[2].children[0].value || 0;
+    let price = row.children[3].children[0].value || 0;
+    let rowTotal = qty * price;
+    row.children[4].innerText = rowTotal;
+    total += rowTotal;
+  });
+
+  document.getElementById("subTotal").innerText = total;
+  document.getElementById("grandTotal").innerText = total;
+}
+
+function addRow() {
+  let row = document.getElementById("items").insertRow();
+  row.innerHTML = `
+    <td></td>
+    <td><input></td>
+    <td><input type="number" value="1" onchange="calc()"></td>
+    <td><input type="number" onchange="calc()"></td>
+    <td class="rowTotal">0</td>
+    <td class="action-col">
+      <button onclick="addRow()">+</button>
+      <button onclick="deleteRow(this)">✕</button>
+    </td>
+  `;
+  calc();
+}
+
+function deleteRow(btn) {
+  btn.closest("tr").remove();
+  calc();
+}
+
+async function saveInvoice() {
+  const customer =
+    document.getElementById("customerName").value;
+  const phone =
+    document.getElementById("customerPhone").value;
+  const subtotal =
+    document.getElementById("subTotal").innerText;
+  const total =
+    document.getElementById("grandTotal").innerText;
+
+  const response = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      customer,
+      phone,
+      subtotal,
+      total
+    })
+  });
+
+  const result = await response.json();
+
+  document.getElementById("invoiceNo").value =
+    result.invoiceNo;
+
+  document.title =
+    `AL JABAL TYPING - ${result.invoiceNo}`;
+
+  window.print();
+}
+</script>
+
+</body>
+</html>
